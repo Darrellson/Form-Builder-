@@ -19,40 +19,7 @@ const generateFormFields = (schema, form) => {
         const label = document.createElement('label');
         // Sets the text content of the label to the property's label
         label.textContent = property.label;
-        // Checks if the property is an array of technologies
-        if (property.name === 'technologies') {
-            // Creates div to wrap technologies
-            const technologiesDiv = document.createElement('div');
-            // Adds Bootstrap class to the div
-            technologiesDiv.classList.add('technologies-container');
-            // Iterates through each item in technologies
-            property.item.forEach((index) => {
-                // Creates div for each technology
-                const technologyDiv = document.createElement('div');
-                // Sets class for technology div
-                technologyDiv.classList.add('technology-item');
-                // Creates input for technology name
-                const techInput = document.createElement('input');
-                techInput.setAttribute('type', 'text');
-                techInput.setAttribute('name', `technologies[${index}].technology`);
-                techInput.setAttribute('placeholder', 'Technology');
-                techInput.classList.add('form-control');
-                // Creates input for experience
-                const expInput = document.createElement('input');
-                expInput.setAttribute('type', 'number');
-                expInput.setAttribute('name', `technologies[${index}].experience`);
-                expInput.setAttribute('placeholder', 'Experience (years)');
-                expInput.classList.add('form-control');
-                // Appends inputs to technology div
-                technologyDiv.appendChild(techInput);
-                technologyDiv.appendChild(expInput);
-                // Appends technology div to technologies container
-                technologiesDiv.appendChild(technologyDiv);
-            });
-            // Appends label and technologies div to the form
-            form.appendChild(label);
-            form.appendChild(technologiesDiv);
-        } else if (property.name === 'links') {
+            if (property.name === 'links') {
             // Creates div to wrap links
             const linksDiv = document.createElement('div');
             // Adds class to the div
