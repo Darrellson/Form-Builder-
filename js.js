@@ -37,7 +37,7 @@ const generateFormFields = (schema, form) => {
         } else {
             // Property type is neither an array nor an object
             // Determine input type based on property type
-            const element = property.type === 'boolean' ? createCheckbox(property) : property.name === 'plans' ? createTextarea(property) : createInput(property);
+            const element = property.type === 'boolean' ? createCheckbox(property) : property.name === 'plans' ? createTextarea(property) : property.type === 'enum' ? createSelect(property) : createInput(property);
             // Append input element to the form
             form.appendChild(element);
         }
