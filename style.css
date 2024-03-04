@@ -1,5 +1,5 @@
 .array-container {
-    background-color: rgba(128, 128, 128, 0.068);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
+  background-color: rgba(128, 128, 128, 0.068);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
 }

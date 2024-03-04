@@ -1,159 +1,136 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    // Fetches the schema asynchronously
-    const schema = await fetchSchema('schema.json');
-    // Retrieves the form element with ID 'profileForm'
-    const form = document.getElementById('profileForm');
-    // Generates form fields based on the schema
-    generateFormFields(schema, form);
-    // Adds event listener to submit button
-    document.getElementById('submitButton').addEventListener('click', handleSubmit);
-});
-// Function to fetch JSON schema
-const fetchSchema = async (url) => await (await fetch(url)).json();
-// Function to generate form fields based on a JSON schema and apply Bootstrap styling
-const generateFormFields = (schema, form) => {
-    // Check if schema is an object and has properties
-    if (typeof schema === 'object' && schema.hasOwnProperty('properties') && Array.isArray(schema.properties)) {
-        // Iterate over each property in the schema
-        schema.properties.forEach(property => {
-            // Check if property has a type and name
-            if (property.hasOwnProperty('type') && property.hasOwnProperty('name')) {
-                // Create label for the property
-                const label = createLabel(property.label);
-                // Append the label to the form
-                form.appendChild(label);
-                // Check if property type is an array
-                if (property.type === 'array' && property.hasOwnProperty('item') && Array.isArray(property.item) && property.item.length > 0) {
-                    // Create container for array items
-                    const arrayDiv = createContainer('div', 'array-container');
-                    // Create input fields for "Technology" and "Experience"
-                    property.item.forEach(item => {
-                        const technologyLabel = createLabel(item.properties[0].label);
-                        arrayDiv.appendChild(technologyLabel);
-                        const technologyInput = createInput(item.properties[0]);
-                        arrayDiv.appendChild(technologyInput);
-                        const experienceLabel = createLabel(item.properties[1].label);
-                        arrayDiv.appendChild(experienceLabel);
-                        const experienceInput = createInput(item.properties[1]);
-                        arrayDiv.appendChild(experienceInput);
-                    });
-                    // Create "Add" button
-                    const addButton = createButton('Add', 'btn-primary', () => generateFormFields(property.item[0], arrayDiv));
-                    // Append "Add" button to array container
-                    arrayDiv.appendChild(addButton);
-                    // Append array container to the form
-                    form.appendChild(arrayDiv);
-                } else if (property.type === 'object' && property.hasOwnProperty('properties')) {
-                    // Recursively generate form fields for object properties
-                    generateFormFields(property, form);
-                } else {
-                    // Property type is neither an array nor an object
-                    // Determine input type based on property type
-                    let element;
-                    if (property.type === 'boolean') {
-                        element = createCheckbox(property);
-                    } else if (property.name === 'plans') {
-                        element = createTextarea(property);
-                    } else if (property.type === 'enum' && property.hasOwnProperty('options') && Array.isArray(property.options)) {
-                        element = createSelect(property);
-                    } else if (property.type === 'string' || property.type === 'number') {
-                        element = createInput(property);
-                    } else {
-                        // Unsupported property type
-                        console.error(`Unsupported property type for ${property.name}`);
-                        return;
-                    }
-                    // Append input element to the form
-                    form.appendChild(element);
-                }
-            } else {
-                // Property does not have type or name
-                console.error(`Property missing type or name: ${JSON.stringify(property)}`);
-            }
-        });
-    } else {
-        // Schema is not in the expected format
-        console.error('Schema is not in the expected format.');
-        return;
-    }
+const fetchData = async () => {
+  // Declaring an asynchronous function named fetchData
+  const response = await fetch("schema.json"); // Making a GET request to fetch the "schema.json" file
+  if (!response.ok) {
+    // Checking if the response status is not okay (i.e., not in the range 200-299)
+    throw new Error("Failed to fetch data"); // Throwing an error if fetching the data failed
+  }
+  const data = await response.json(); // Parsing the response body as JSON and storing it in the variable data
+  renderForm(data); // Calling the renderForm function with the fetched data
 };
-// Function to create label element
+fetchData(); // Calling the fetchData function immediately upon script execution
+const renderForm = (data) => {
+  // Defining a function renderForm which takes data as input
+  const profileForm = document.getElementById("profileForm"); // Getting the form element with id "profileForm"
+  data.properties.forEach((property) => {
+    // Iterating through each property in the data object
+    const element = createElement(property); // Creating an HTML element based on the property type
+    const label = createLabel(property.label); // Creating a label element for the property
+    profileForm.appendChild(label); // Appending the label element to the form
+    profileForm.appendChild(element); // Appending the input element to the form
+  });
+
+  const submitButton = document.getElementById("submitButton"); // Getting the submit button element
+  submitButton.addEventListener("click", handleSubmit); // Adding a click event listener to the submit button
+};
+const createElement = (property) => {
+  // Defining a function createElement which takes a property as input
+  let element; // Declaring a variable to hold the HTML element
+  switch (
+    property.type // Switch statement to determine the type of HTML element to create based on property type
+  ) {
+    case "array": // If property type is "array"
+      element = createArray(property.name, property.item); // Call createArray function to create an array element
+      break;
+    case "enum": // If property type is "enum"
+      element = createSelect(property.name, property.options); // Call createSelect function to create a select element
+      break;
+    case "object": // If property type is "object"
+      element = createObject(property.properties); // Call createObject function to create an object element
+      break;
+    case "boolean": // If property type is "boolean"
+      element = createCheckbox(property.name); // Call createCheckbox function to create a checkbox element
+      break;
+    default: // For other property types
+      element = createInput(property.name, property.type); // Call createInput function to create an input element
+  }
+  if (property.required) {
+    // Checking if the property is required
+    element.required = true; // Setting the required attribute of the element to true
+  }
+  return element; // Returning the created HTML element
+};
+// Functions to create specific HTML elements with given properties
 const createLabel = (text) => {
-    const label = document.createElement('label');
-    label.textContent = text;
-    label.classList.add('form-label');
-    return label;
+  // Function to create a label element with given text
+  const label = document.createElement("label"); // Creating a label element
+  label.textContent = text; // Setting the text content of the label
+  label.classList.add("form-label"); // Adding a CSS class to the label
+  return label; // Returning the created label element
 };
-// Function to create container element
-const createContainer = (type, className) => {
-    const container = document.createElement(type);
-    container.classList.add(className);
-    return container;
+const createInput = (name, type) => {
+  // Function to create an input element with given name and type
+  const input = document.createElement("input"); // Creating an input element
+  input.setAttribute("name", name); // Setting the name attribute of the input
+  input.classList.add("form-control"); // Adding a CSS class to the input
+  input.setAttribute("type", type); // Setting the type attribute of the input
+  return input; // Returning the created input element
 };
-// Function to create button element
-const createButton = (text, btnClass, onClick) => {
-    const button = document.createElement('button');
-    button.textContent = text;
-    button.type = 'button';
-    button.classList.add('btn', btnClass, 'mb-3');
-    button.addEventListener('click', onClick);
-    return button;
+const createSelect = (name, options) => {
+  // Function to create a select element with given name and options
+  const select = document.createElement("select"); // Creating a select element
+  select.setAttribute("name", name); // Setting the name attribute of the select
+  select.classList.add("form-select"); // Adding a CSS class to the select
+  options.forEach((option) => {
+    // Iterating through each option
+    const optionElement = document.createElement("option"); // Creating an option element
+    optionElement.setAttribute("value", option.value); // Setting the value attribute of the option
+    optionElement.textContent = option.label; // Setting the text content of the option
+    select.appendChild(optionElement); // Appending the option element to the select
+  });
+  return select; // Returning the created select element
 };
-// Function to create input element
-const createInput = (property) => {
-    const input = document.createElement('input');
-    input.setAttribute('name', property.name);
-    input.classList.add('form-control');
-    input.setAttribute('type', property.inputType || 'text');
-    if (property.required) input.setAttribute('required', true);
-    if (property.minLength) input.setAttribute('minlength', property.minLength);
-    if (property.maxLength) input.setAttribute('maxlength', property.maxLength);
-    if (property.inputType === 'email') input.setAttribute('pattern', '[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$');
-    if (property.inputType === 'tel' || property.name === 'universityYears') { // Add condition for universityYears
-        input.setAttribute('pattern', '^\\d{1,2}$'); // Assuming maximum university years is 99
-        input.setAttribute('inputmode', 'numeric'); // Add this line to accept only numeric input
+const createArray = (name, items) => {
+  // Function to create a container for array elements
+  const arrayContainer = document.createElement("div"); // Creating a div element
+  arrayContainer.classList.add("array-container"); // Adding a CSS class to the div
+  items.forEach((itemSchema) => {
+    // Iterating through each item schema
+    const itemElement = createElement(itemSchema); // Creating an HTML element for the item schema
+    if (itemElement) {
+      // Checking if the item element is valid
+      arrayContainer.appendChild(itemElement); // Appending the item element to the container
     }
-    if (property.options) input.replaceWith(createSelect(property));
-    return input;
+  });
+  return arrayContainer; // Returning the created container element
 };
-// Function to create select element
-const createSelect = (property) => {
-    const select = document.createElement('select');
-    select.setAttribute('name', property.name);
-    select.classList.add('form-select');
-    if (property.required) select.setAttribute('required', true);
-    property.options.forEach(option => {
-        const optionElement = document.createElement('option');
-        optionElement.setAttribute('value', option.value);
-        optionElement.textContent = option.label;
-        select.appendChild(optionElement);
-    });
-    return select;
+const createObject = (properties) => {
+  // Function to create a container for object properties
+  const objectContainer = document.createElement("div"); // Creating a div element
+  properties.forEach((property) => {
+    // Iterating through each property
+    const element = createElement(property); // Creating an HTML element for the property
+    const label = createLabel(property.label); // Creating a label for the property
+    objectContainer.appendChild(label); // Appending the label to the container
+    objectContainer.appendChild(element); // Appending the element to the container
+  });
+  return objectContainer; // Returning the created container element
 };
-// Function to create checkbox input element
-const createCheckbox = (property) => {
-    const checkbox = document.createElement('input');
-    checkbox.setAttribute('name', property.name);
-    checkbox.classList.add('form-check-input');
-    checkbox.setAttribute('type', 'checkbox');
-    if (property.required) checkbox.setAttribute('required', true);
-    return checkbox;
+const createCheckbox = (name) => {
+  // Function to create a checkbox element with given name
+  const checkbox = document.createElement("input"); // Creating an input element
+  checkbox.setAttribute("name", name); // Setting the name attribute of the input
+  checkbox.classList.add("form-check-input"); // Adding a CSS class to the input
+  checkbox.setAttribute("type", "checkbox"); // Setting the type attribute of the input to "checkbox"
+  return checkbox; // Returning the created checkbox element
 };
-// Function to create textarea element
-const createTextarea = (property) => {
-    const textarea = document.createElement('textarea');
-    textarea.setAttribute('name', property.name);
-    textarea.classList.add('form-control');
-    textarea.setAttribute('rows', '3');
-    if (property.required) textarea.setAttribute('required', true);
-    textarea.style.resize = 'none'; // Add this line to disable resizing
-    return textarea;
-};
-// Function to handle form submission
 const handleSubmit = (event) => {
-    event.preventDefault();
-    // Retrieve form data using FormData API
-    const formData = Object.fromEntries(new FormData(document.getElementById('profileForm')).entries());
-    // Log form data as a JSON object to the console
-    console.log(formData);
+  // Function to handle form submission
+  event.preventDefault(); // Preventing the default form submission behavior
+  const formData = new FormData(document.getElementById("profileForm")); // Creating FormData object from the form
+  const data = {}; // Initializing an empty object to store form data
+  formData.forEach((value, key) => {
+    // Iterating through each form data entry
+    if (!data[key]) {
+      // If the key doesn't exist in the data object
+      data[key] = value; // Assigning the value to the key in the data object
+      return; // Exiting the loop iteration
+    }
+    if (!Array.isArray(data[key])) {
+      // If the value is not an array
+      data[key] = [data[key]]; // Convert the value to an array
+    }
+    data[key].push(value); // Pushing the new value to the array
+  });
+  console.log(data); // Logging the form data object to the console
 };
