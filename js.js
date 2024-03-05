@@ -1,136 +1,187 @@
+/**
+ * Fetches data from "schema.json" file asynchronously.
+ * Calls renderForm function with the fetched data.
+ */
 const fetchData = async () => {
-  // Declaring an asynchronous function named fetchData
-  const response = await fetch("schema.json"); // Making a GET request to fetch the "schema.json" file
-  if (!response.ok) {
-    // Checking if the response status is not okay (i.e., not in the range 200-299)
-    throw new Error("Failed to fetch data"); // Throwing an error if fetching the data failed
+  try {
+    const response = await fetch("schema.json");
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    }
+    const data = await response.json();
+    renderForm(data);
+  } catch (error) {
+    console.error(error.message);
   }
-  const data = await response.json(); // Parsing the response body as JSON and storing it in the variable data
-  renderForm(data); // Calling the renderForm function with the fetched data
 };
-fetchData(); // Calling the fetchData function immediately upon script execution
+
+/**
+ * Renders a form based on the provided data.
+ * @param {Object} data - The data object containing form properties.
+ */
 const renderForm = (data) => {
-  // Defining a function renderForm which takes data as input
-  const profileForm = document.getElementById("profileForm"); // Getting the form element with id "profileForm"
+  const profileForm = document.getElementById("profileForm");
   data.properties.forEach((property) => {
-    // Iterating through each property in the data object
-    const element = createElement(property); // Creating an HTML element based on the property type
-    const label = createLabel(property.label); // Creating a label element for the property
-    profileForm.appendChild(label); // Appending the label element to the form
-    profileForm.appendChild(element); // Appending the input element to the form
+    const element = createElement(property);
+    const label = createLabel(property.label);
+    profileForm.append(label, element);
   });
 
-  const submitButton = document.getElementById("submitButton"); // Getting the submit button element
-  submitButton.addEventListener("click", handleSubmit); // Adding a click event listener to the submit button
+  document.getElementById("submitButton").addEventListener("click", handleSubmit);
 };
+
+/**
+ * Creates an HTML element based on the provided property.
+ * @param {Object} property - The property object.
+ * @returns {HTMLElement} - The created HTML element.
+ */
 const createElement = (property) => {
-  // Defining a function createElement which takes a property as input
-  let element; // Declaring a variable to hold the HTML element
-  switch (
-    property.type // Switch statement to determine the type of HTML element to create based on property type
-  ) {
-    case "array": // If property type is "array"
-      element = createArray(property.name, property.item); // Call createArray function to create an array element
+  let element;
+  switch (property.type) {
+    case "array":
+      element = createArrayContainer(property);
+      element.append(createAddButton(property));
       break;
-    case "enum": // If property type is "enum"
-      element = createSelect(property.name, property.options); // Call createSelect function to create a select element
+    case "object":
+      element = document.createElement("div");
+      property.properties.forEach((property) => {
+        element.append(createLabel(property.label), createElement(property));
+      });
       break;
-    case "object": // If property type is "object"
-      element = createObject(property.properties); // Call createObject function to create an object element
+    case "enum":
+      element = createSelect(property.name, property.options);
       break;
-    case "boolean": // If property type is "boolean"
-      element = createCheckbox(property.name); // Call createCheckbox function to create a checkbox element
+    case "boolean":
+      element = createCheckbox(property.name);
       break;
-    default: // For other property types
-      element = createInput(property.name, property.type); // Call createInput function to create an input element
+    default:
+      element = createInput(property.name, property.type);
   }
   if (property.required) {
-    // Checking if the property is required
-    element.required = true; // Setting the required attribute of the element to true
+    element.required = true;
   }
-  return element; // Returning the created HTML element
+  return element;
 };
-// Functions to create specific HTML elements with given properties
-const createLabel = (text) => {
-  // Function to create a label element with given text
-  const label = document.createElement("label"); // Creating a label element
-  label.textContent = text; // Setting the text content of the label
-  label.classList.add("form-label"); // Adding a CSS class to the label
-  return label; // Returning the created label element
-};
-const createInput = (name, type) => {
-  // Function to create an input element with given name and type
-  const input = document.createElement("input"); // Creating an input element
-  input.setAttribute("name", name); // Setting the name attribute of the input
-  input.classList.add("form-control"); // Adding a CSS class to the input
-  input.setAttribute("type", type); // Setting the type attribute of the input
-  return input; // Returning the created input element
-};
-const createSelect = (name, options) => {
-  // Function to create a select element with given name and options
-  const select = document.createElement("select"); // Creating a select element
-  select.setAttribute("name", name); // Setting the name attribute of the select
-  select.classList.add("form-select"); // Adding a CSS class to the select
-  options.forEach((option) => {
-    // Iterating through each option
-    const optionElement = document.createElement("option"); // Creating an option element
-    optionElement.setAttribute("value", option.value); // Setting the value attribute of the option
-    optionElement.textContent = option.label; // Setting the text content of the option
-    select.appendChild(optionElement); // Appending the option element to the select
-  });
-  return select; // Returning the created select element
-};
-const createArray = (name, items) => {
-  // Function to create a container for array elements
-  const arrayContainer = document.createElement("div"); // Creating a div element
-  arrayContainer.classList.add("array-container"); // Adding a CSS class to the div
-  items.forEach((itemSchema) => {
-    // Iterating through each item schema
-    const itemElement = createElement(itemSchema); // Creating an HTML element for the item schema
+
+/**
+ * Creates a container for array elements.
+ * @param {Object} property - The property object representing the array.
+ * @returns {HTMLElement} - The container element.
+ */
+const createArrayContainer = (property) => {
+  const container = document.createElement("div");
+  container.classList.add("array-container");
+  property.item.forEach((itemSchema) => {
+    const itemElement = createElement(itemSchema);
     if (itemElement) {
-      // Checking if the item element is valid
-      arrayContainer.appendChild(itemElement); // Appending the item element to the container
+      container.appendChild(itemElement);
     }
   });
-  return arrayContainer; // Returning the created container element
+  return container;
 };
-const createObject = (properties) => {
-  // Function to create a container for object properties
-  const objectContainer = document.createElement("div"); // Creating a div element
-  properties.forEach((property) => {
-    // Iterating through each property
-    const element = createElement(property); // Creating an HTML element for the property
-    const label = createLabel(property.label); // Creating a label for the property
-    objectContainer.appendChild(label); // Appending the label to the container
-    objectContainer.appendChild(element); // Appending the element to the container
+
+/**
+ * Creates an "Add" button for adding new array items.
+ * @param {Object} property - The property object representing the array.
+ * @returns {HTMLButtonElement} - The "Add" button element.
+ */
+const createAddButton = (property) => {
+  const addButton = document.createElement("button");
+  addButton.textContent = "Add";
+  addButton.classList.add("btn", "btn-primary");
+  addButton.addEventListener("click", () => {
+    const itemSchema = property.item[0]; // Assuming all items have the same schema
+    const itemElement = createElement(itemSchema);
+    if (itemElement) {
+      const container = addButton.parentNode;
+      container.insertBefore(itemElement, addButton);
+    }
   });
-  return objectContainer; // Returning the created container element
+  return addButton;
 };
+
+/**
+ * Creates a label element with the given text.
+ * @param {string} text - The text content of the label.
+ * @returns {HTMLLabelElement} - The created label element.
+ */
+const createLabel = (text) => {
+  const label = document.createElement("label");
+  label.textContent = text;
+  label.classList.add("form-label");
+  return label;
+};
+
+/**
+ * Creates an input element with the given name and type.
+ * @param {string} name - The name attribute of the input.
+ * @param {string} type - The type attribute of the input.
+ * @returns {HTMLInputElement} - The created input element.
+ */
+const createInput = (name, type) => {
+  const input = document.createElement("input");
+  input.setAttribute("name", name);
+  input.classList.add("form-control");
+  input.setAttribute("type", type);
+  return input;
+};
+
+/**
+ * Creates a select element with the given name and options.
+ * @param {string} name - The name attribute of the select.
+ * @param {Array<Object>} options - An array of option objects.
+ * @returns {HTMLSelectElement} - The created select element.
+ */
+const createSelect = (name, options) => {
+  const select = document.createElement("select");
+  select.setAttribute("name", name);
+  select.classList.add("form-select");
+  options.forEach((option) => {
+    const optionElement = document.createElement("option");
+    optionElement.setAttribute("value", option.value);
+    optionElement.textContent = option.label;
+    select.appendChild(optionElement);
+  });
+  return select;
+};
+
+/**
+ * Creates a checkbox element with the given name.
+ * @param {string} name - The name attribute of the checkbox.
+ * @returns {HTMLInputElement} - The created checkbox element.
+ */
 const createCheckbox = (name) => {
-  // Function to create a checkbox element with given name
-  const checkbox = document.createElement("input"); // Creating an input element
-  checkbox.setAttribute("name", name); // Setting the name attribute of the input
-  checkbox.classList.add("form-check-input"); // Adding a CSS class to the input
-  checkbox.setAttribute("type", "checkbox"); // Setting the type attribute of the input to "checkbox"
-  return checkbox; // Returning the created checkbox element
+  const checkbox = document.createElement("input");
+  checkbox.setAttribute("name", name);
+  checkbox.classList.add("form-check-input");
+  checkbox.setAttribute("type", "checkbox");
+  return checkbox;
 };
+
+/**
+ * Handles form submission.
+ * Prevents the default form submission behavior and logs form data.
+ * @param {Event} event - The submit event object.
+ */
 const handleSubmit = (event) => {
-  // Function to handle form submission
-  event.preventDefault(); // Preventing the default form submission behavior
-  const formData = new FormData(document.getElementById("profileForm")); // Creating FormData object from the form
-  const data = {}; // Initializing an empty object to store form data
+  event.preventDefault();
+  const formData = new FormData(document.getElementById("profileForm"));
+  const data = {};
   formData.forEach((value, key) => {
-    // Iterating through each form data entry
     if (!data[key]) {
-      // If the key doesn't exist in the data object
-      data[key] = value; // Assigning the value to the key in the data object
-      return; // Exiting the loop iteration
+      data[key] = value;
+      return;
     }
     if (!Array.isArray(data[key])) {
-      // If the value is not an array
-      data[key] = [data[key]]; // Convert the value to an array
+      data[key] = [data[key]];
     }
-    data[key].push(value); // Pushing the new value to the array
+    data[key].push(value);
   });
-  console.log(data); // Logging the form data object to the console
+  console.log(data);
 };
+
+// Immediately fetch data upon script execution
+fetchData();
+
+
+ 
