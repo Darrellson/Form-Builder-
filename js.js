@@ -33,6 +33,24 @@ const renderForm = (data) => {
 };
 
 /**
+ * Creates a container for array elements with shadow.
+ * @param {Object} property - The property object representing the array.
+ * @returns {HTMLElement} - The container element with shadow effect.
+ */
+const createArrayContainer = (property) => {
+  const container = document.createElement("div");
+  container.classList.add("array-container", "shadow"); // Add Bootstrap shadow class
+  container.style.padding = "10px"; // Add padding for spacing
+  property.item.forEach((itemSchema) => {
+    const itemElement = createElement(itemSchema);
+    if (itemElement) {
+      container.appendChild(itemElement);
+    }
+  });
+  return container;
+};
+
+/**
  * Creates an HTML element based on the provided property.
  * @param {Object} property - The property object.
  * @returns {HTMLElement} - The created HTML element.
@@ -46,43 +64,38 @@ const createElement = (property) => {
       break;
     case "object":
       element = document.createElement("div");
+      element.classList.add("form-group", "shadow"); // Add Bootstrap shadow class
+      element.style.padding = "10px"; // Add padding for spacing
       property.properties.forEach((property) => {
-        element.append(createLabel(property.label), createElement(property));
+        const label = createLabel(property.label);
+        const input = createElement(property);
+        const inputWrapper = document.createElement("div");
+        inputWrapper.classList.add("mb-3"); // Add Bootstrap class
+        inputWrapper.appendChild(label);
+        inputWrapper.appendChild(input);
+        element.appendChild(inputWrapper);
       });
       break;
     case "enum":
       element = createSelect(property.name, property.options);
+      element.classList.add("form-control"); // Add Bootstrap class
       break;
     case "boolean":
       element = createCheckbox(property.name);
+      element.classList.add("form-check-input"); // Add Bootstrap class
       break;
     case "string":
       element = createInput(property.name, property.type, property.label);
+      element.classList.add("form-control"); // Add Bootstrap class
       break;
     default:
       element = createInput(property.name, property.type);
+      element.classList.add("form-control"); // Add Bootstrap class
   }
   if (property.required) {
     element.required = true;
   }
   return element;
-};
-
-/**
- * Creates a container for array elements.
- * @param {Object} property - The property object representing the array.
- * @returns {HTMLElement} - The container element.
- */
-const createArrayContainer = (property) => {
-  const container = document.createElement("div");
-  container.classList.add("array-container");
-  property.item.forEach((itemSchema) => {
-    const itemElement = createElement(itemSchema);
-    if (itemElement) {
-      container.appendChild(itemElement);
-    }
-  });
-  return container;
 };
 
 /**
