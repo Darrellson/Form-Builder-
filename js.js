@@ -27,7 +27,9 @@ const renderForm = (data) => {
     profileForm.append(label, element);
   });
 
-  document.getElementById("submitButton").addEventListener("click", handleSubmit);
+  document
+    .getElementById("submitButton")
+    .addEventListener("click", handleSubmit);
 };
 
 /**
@@ -53,6 +55,9 @@ const createElement = (property) => {
       break;
     case "boolean":
       element = createCheckbox(property.name);
+      break;
+    case "string":
+      element = createInput(property.name, property.type, property.label);
       break;
     default:
       element = createInput(property.name, property.type);
@@ -89,15 +94,35 @@ const createAddButton = (property) => {
   const addButton = document.createElement("button");
   addButton.textContent = "Add";
   addButton.classList.add("btn", "btn-primary");
+  addButton.setAttribute("type", "button"); // Set button type
   addButton.addEventListener("click", () => {
     const itemSchema = property.item[0]; // Assuming all items have the same schema
     const itemElement = createElement(itemSchema);
     if (itemElement) {
-      const container = addButton.parentNode;
-      container.insertBefore(itemElement, addButton);
+      const container = document.createElement("div"); // Create a container for each input field and its remove button
+      container.classList.add("array-item-container", "mb-3"); // Add Bootstrap classes for styling
+      container.appendChild(itemElement);
+      container.appendChild(createRemoveButton(container)); // Pass the container to createRemoveButton
+      const addButtonContainer = addButton.parentNode;
+      addButtonContainer.insertBefore(container, addButton);
     }
   });
   return addButton;
+};
+
+/**
+ * Creates a "Remove" button for removing array items.
+ * @param {HTMLElement} container - The container element wrapping the input field and remove button.
+ * @returns {HTMLButtonElement} - The "Remove" button element.
+ */
+const createRemoveButton = (container) => {
+  const removeButton = document.createElement("button");
+  removeButton.textContent = "Remove";
+  removeButton.classList.add("btn", "btn-danger", "ms-2"); // Adding Bootstrap classes for styling
+  removeButton.addEventListener("click", () => {
+    container.parentNode.removeChild(container); // Remove the container
+  });
+  return removeButton;
 };
 
 /**
@@ -113,16 +138,18 @@ const createLabel = (text) => {
 };
 
 /**
- * Creates an input element with the given name and type.
+ * Creates an input element with the given name, type, and placeholder.
  * @param {string} name - The name attribute of the input.
  * @param {string} type - The type attribute of the input.
+ * @param {string} placeholder - The placeholder text for the input.
  * @returns {HTMLInputElement} - The created input element.
  */
-const createInput = (name, type) => {
+const createInput = (name, type, placeholder) => {
   const input = document.createElement("input");
   input.setAttribute("name", name);
   input.classList.add("form-control");
   input.setAttribute("type", type);
+  input.setAttribute("placeholder", placeholder);
   return input;
 };
 
@@ -175,13 +202,10 @@ const handleSubmit = (event) => {
     if (!Array.isArray(data[key])) {
       data[key] = [data[key]];
     }
-    data[key].push(value);
+    data[key] = [...data[key], value];
   });
   console.log(data);
 };
 
 // Immediately fetch data upon script execution
 fetchData();
-
-
- 
