@@ -33,24 +33,6 @@ const renderForm = (data) => {
 };
 
 /**
- * Creates a container for array elements with shadow.
- * @param {Object} property - The property object representing the array.
- * @returns {HTMLElement} - The container element with shadow effect.
- */
-const createArrayContainer = (property) => {
-  const container = document.createElement("div");
-  container.classList.add("array-container", "shadow"); // Add Bootstrap shadow class
-  container.style.padding = "10px"; // Add padding for spacing
-  property.item.forEach((itemSchema) => {
-    const itemElement = createElement(itemSchema);
-    if (itemElement) {
-      container.appendChild(itemElement);
-    }
-  });
-  return container;
-};
-
-/**
  * Creates an HTML element based on the provided property.
  * @param {Object} property - The property object.
  * @returns {HTMLElement} - The created HTML element.
@@ -64,13 +46,14 @@ const createElement = (property) => {
       break;
     case "object":
       element = document.createElement("div");
-      element.classList.add("form-group", "shadow"); // Add Bootstrap shadow class
-      element.style.padding = "10px"; // Add padding for spacing
+      element.classList.add("form-group", "shadow");
+      element.style.padding = "10px";
+      element.style.borderRadius = "10px";
       property.properties.forEach((property) => {
         const label = createLabel(property.label);
         const input = createElement(property);
         const inputWrapper = document.createElement("div");
-        inputWrapper.classList.add("mb-3"); // Add Bootstrap class
+        inputWrapper.classList.add("mb-3");
         inputWrapper.appendChild(label);
         inputWrapper.appendChild(input);
         element.appendChild(inputWrapper);
@@ -78,24 +61,42 @@ const createElement = (property) => {
       break;
     case "enum":
       element = createSelect(property.name, property.options);
-      element.classList.add("form-control"); // Add Bootstrap class
+      element.classList.add("form-control");
       break;
     case "boolean":
       element = createCheckbox(property.name);
-      element.classList.add("form-check-input"); // Add Bootstrap class
+      element.classList.add("form-check-input");
       break;
     case "string":
       element = createInput(property.name, property.type, property.label);
-      element.classList.add("form-control"); // Add Bootstrap class
+      element.classList.add("form-control");
       break;
     default:
       element = createInput(property.name, property.type);
-      element.classList.add("form-control"); // Add Bootstrap class
+      element.classList.add("form-control");
   }
   if (property.required) {
     element.required = true;
   }
   return element;
+};
+/**
+ * Creates a container for array elements with shadow.
+ * @param {Object} property - The property object representing the array.
+ * @returns {HTMLElement} - The container element with shadow effect.
+ */
+const createArrayContainer = (property) => {
+  const container = document.createElement("div");
+  container.classList.add("array-container", "shadow");
+  container.style.padding = "10px";
+  container.style.borderRadius = "10px";
+  property.item.forEach((itemSchema) => {
+    const itemElement = createElement(itemSchema);
+    if (itemElement) {
+      container.appendChild(itemElement);
+    }
+  });
+  return container;
 };
 
 /**
@@ -107,15 +108,16 @@ const createAddButton = (property) => {
   const addButton = document.createElement("button");
   addButton.textContent = "Add";
   addButton.classList.add("btn", "btn-primary");
-  addButton.setAttribute("type", "button"); // Set button type
+  addButton.style.margin = "10px";
+  addButton.setAttribute("type", "button");
   addButton.addEventListener("click", () => {
-    const itemSchema = property.item[0]; // Assuming all items have the same schema
+    const itemSchema = property.item[0];
     const itemElement = createElement(itemSchema);
     if (itemElement) {
-      const container = document.createElement("div"); // Create a container for each input field and its remove button
-      container.classList.add("array-item-container", "mb-3"); // Add Bootstrap classes for styling
+      const container = document.createElement("div");
+      container.classList.add("array-item-container", "mb-3");
       container.appendChild(itemElement);
-      container.appendChild(createRemoveButton(container)); // Pass the container to createRemoveButton
+      container.appendChild(createRemoveButton(container));
       const addButtonContainer = addButton.parentNode;
       addButtonContainer.insertBefore(container, addButton);
     }
@@ -131,9 +133,10 @@ const createAddButton = (property) => {
 const createRemoveButton = (container) => {
   const removeButton = document.createElement("button");
   removeButton.textContent = "Remove";
-  removeButton.classList.add("btn", "btn-danger", "ms-2"); // Adding Bootstrap classes for styling
+  removeButton.classList.add("btn", "btn-danger", "ms-2");
+  removeButton.style.margin = "10px";
   removeButton.addEventListener("click", () => {
-    container.parentNode.removeChild(container); // Remove the container
+    container.parentNode.removeChild(container);
   });
   return removeButton;
 };
