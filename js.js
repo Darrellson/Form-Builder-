@@ -256,5 +256,4 @@ const handleSubmit = (event) => {
   console.log(data);
 };
 
-// Immediately fetch data upon script execution
 fetchData();
