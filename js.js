@@ -10,9 +10,19 @@ const fetchData = async () => {
     }
     const data = await response.json();
     renderForm(data);
+    displayJson(data); // Display the JSON content
   } catch (error) {
     console.error(error.message);
   }
+};
+
+/**
+ * Displays the JSON content on the webpage.
+ * @param {Object} data - The JSON data to be displayed.
+ */
+const displayJson = (data) => {
+  const jsonContent = document.getElementById("jsonContent");
+  jsonContent.textContent = JSON.stringify(data, null, 2);
 };
 
 /**
@@ -67,12 +77,8 @@ const createElement = (property) => {
       element = createCheckbox(property.name);
       element.classList.add("form-check-input");
       break;
-    case "string":
-      element = createInput(property.name, property.type, property.label);
-      element.classList.add("form-control");
-      break;
     default:
-      element = createInput(property.name, property.type);
+      element = createInput(property.name, property.type, property.label);
       element.classList.add("form-control");
   }
   if (property.required) {
@@ -80,6 +86,7 @@ const createElement = (property) => {
   }
   return element;
 };
+
 /**
  * Creates a container for array elements with shadow.
  * @param {Object} property - The property object representing the array.
@@ -90,14 +97,19 @@ const createArrayContainer = (property) => {
   container.classList.add("array-container", "shadow");
   container.style.padding = "10px";
   container.style.borderRadius = "10px";
-  property.item.forEach((itemSchema) => {
+  property.item.forEach((itemSchema, index) => {
     const itemElement = createElement(itemSchema);
     if (itemElement) {
-      container.appendChild(itemElement);
+      const itemContainer = document.createElement("div");
+      itemContainer.classList.add("array-item-container", "mb-3");
+      itemContainer.appendChild(itemElement);
+      itemContainer.appendChild(createRemoveButton(itemContainer));
+      container.appendChild(itemContainer);
     }
   });
   return container;
 };
+let arrayItemCount = 1;
 
 /**
  * Creates an "Add" button for adding new array items.
@@ -107,7 +119,7 @@ const createArrayContainer = (property) => {
 const createAddButton = (property) => {
   const addButton = document.createElement("button");
   addButton.textContent = "Add";
-  addButton.classList.add("btn", "btn-primary");
+  addButton.classList.add("btn", "btn-primary", "me-2");
   addButton.style.margin = "10px";
   addButton.setAttribute("type", "button");
   addButton.addEventListener("click", () => {
@@ -120,6 +132,8 @@ const createAddButton = (property) => {
       container.appendChild(createRemoveButton(container));
       const addButtonContainer = addButton.parentNode;
       addButtonContainer.insertBefore(container, addButton);
+      arrayItemCount++;
+      updateRemoveButtons();
     }
   });
   return addButton;
@@ -133,12 +147,31 @@ const createAddButton = (property) => {
 const createRemoveButton = (container) => {
   const removeButton = document.createElement("button");
   removeButton.textContent = "Remove";
-  removeButton.classList.add("btn", "btn-danger", "ms-2");
+  removeButton.classList.add("btn", "btn-danger");
   removeButton.style.margin = "10px";
+  removeButton.setAttribute("type", "button");
   removeButton.addEventListener("click", () => {
     container.parentNode.removeChild(container);
+    arrayItemCount--;
+    updateRemoveButtons();
   });
   return removeButton;
+};
+
+/**
+ * Updates the state of remove buttons based on the number of array items.
+ */
+const updateRemoveButtons = () => {
+  const removeButtons = document.querySelectorAll(
+    ".array-item-container .btn-danger"
+  );
+  if (arrayItemCount > 1) {
+    removeButtons.forEach((button) => button.removeAttribute("disabled"));
+  } else {
+    removeButtons.forEach((button) =>
+      button.setAttribute("disabled", "disabled")
+    );
+  }
 };
 
 /**

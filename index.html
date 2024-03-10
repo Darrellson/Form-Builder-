@@ -10,15 +10,22 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>Student Profile Form</h1>
-    <form id="profileForm"></form>
-    <button type="submit" id="submitButton" class="btn btn-primary mt-3">Submit</button>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6">
+        <h1>JSON Content</h1>
+        <pre id="jsonContent"></pre> <!-- Add contenteditable attribute -->
+      </div>
+      <div class="col-md-6">
+        <h1>Student Profile Form</h1>
+        <div id="profileForm"></div>
+        <button type="submit" id="submitButton" class="btn btn-primary mt-3">Submit</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="js.js"></script>
-
 </body>
 
 </html>
