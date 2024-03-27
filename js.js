@@ -4,26 +4,32 @@
  */
 const fetchData = async () => {
   try {
+    // Fetch data from "schema.json" using the Fetch API
     const response = await fetch("schema.json");
+    // Check if the response is successful
     if (!response.ok) {
       throw new Error("Failed to fetch data");
     }
+    // Extract JSON data from the response
     const data = await response.json();
+    // Render the form based on the fetched data
     renderForm(data);
-    displayJson(data); // Display the JSON content
+    // Set fetched data to the JSON editor
+    editor.set(data);
   } catch (error) {
+    // Handle any errors that occur during fetching or processing
     console.error(error.message);
   }
 };
 
-/**
- * Displays the JSON content on the webpage.
- * @param {Object} data - The JSON data to be displayed.
- */
-const displayJson = (data) => {
-  const jsonContent = document.getElementById("jsonContent");
-  jsonContent.textContent = JSON.stringify(data, null, 2);
+// create the editor
+const container = document.getElementById("jsoneditor");
+// Options for the JSON editor
+const options = {
+  modes: ["code", "text"],
 };
+// Initialize the JSON editor with specified options
+const editor = new JSONEditor(container, options);
 
 /**
  * Renders a form based on the provided data.
