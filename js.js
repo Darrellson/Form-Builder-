@@ -1,52 +1,34 @@
 /**
- * Fetches data from "schema.json" file asynchronously.
- * Calls renderForm function with the fetched data.
+ * Draws a form based on the provided JSON data.
+ * @param {Object} json - The JSON object containing form data.
  */
-const fetchData = async () => {
-  try {
-    // Fetch data from "schema.json" using the Fetch API
-    const response = await fetch("schema.json");
-    // Check if the response is successful
-    if (!response.ok) {
-      throw new Error("Failed to fetch data");
-    }
-    // Extract JSON data from the response
-    const data = await response.json();
-    // Render the form based on the fetched data
-    renderForm(data);
-    // Set fetched data to the JSON editor
-    editor.set(data);
-  } catch (error) {
-    // Handle any errors that occur during fetching or processing
-    console.error(error.message);
-  }
-};
-
-// create the editor
-const container = document.getElementById("jsoneditor");
-// Options for the JSON editor
-const options = {
-  modes: ["code", "text"],
-};
-// Initialize the JSON editor with specified options
-const editor = new JSONEditor(container, options);
-
-/**
- * Renders a form based on the provided data.
- * @param {Object} data - The data object containing form properties.
- */
-const renderForm = (data) => {
+const drawForm = (json) => {
+  // Extract data from JSON
+  const data = json;
+  // Get the profile form container
   const profileForm = document.getElementById("profileForm");
+  profileForm.innerHTML = "";
+  // Iterate through properties in JSON data to create form elements
   data.properties.forEach((property) => {
     const element = createElement(property);
     const label = createLabel(property.label);
     profileForm.append(label, element);
   });
-
-  document
-    .getElementById("submitButton")
-    .addEventListener("click", handleSubmit);
+  // Create the form element
+  const form = document.createElement("form");
+  data.properties.forEach((property) => {
+    const element = createElement(property);
+    const label = createLabel(property.label);
+    form.appendChild(label);
+    form.appendChild(element);
+  });
+  profileForm.appendChild(form);
 };
+// Add event listener to the "Generate Form" button
+document.getElementById("generateFormButton").addEventListener("click", () => {
+  const jsonInput = document.getElementById("jsonInput").value;
+  drawForm(JSON.parse(jsonInput));
+});
 
 /**
  * Creates an HTML element based on the provided property.
