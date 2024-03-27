@@ -3,18 +3,14 @@
  * @param {Object} json - The JSON object containing form data.
  */
 const drawForm = (json) => {
-  // Extract data from JSON
   const data = json;
-  // Get the profile form container
   const profileForm = document.getElementById("profileForm");
   profileForm.innerHTML = "";
-  // Iterate through properties in JSON data to create form elements
   data.properties.forEach((property) => {
     const element = createElement(property);
     const label = createLabel(property.label);
     profileForm.append(label, element);
   });
-  // Create the form element
   const form = document.createElement("form");
   data.properties.forEach((property) => {
     const element = createElement(property);
@@ -24,7 +20,6 @@ const drawForm = (json) => {
   });
   profileForm.appendChild(form);
 };
-// Add event listener to the "Generate Form" button
 document.getElementById("generateFormButton").addEventListener("click", () => {
   const jsonInput = document.getElementById("jsonInput").value;
   drawForm(JSON.parse(jsonInput));
