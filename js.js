@@ -1,4 +1,12 @@
 /**
+ * Function to display JSON schema in the textarea.
+ */
+const displayJsonSchema = () => {
+  const textarea = document.getElementById("jsonInput");
+  textarea.value = JSON.stringify(jsonSchema, null, 2);
+};
+
+/**
  * Draws a form based on the provided JSON data.
  * @param {Object} json - The JSON object containing form data.
  */
@@ -11,19 +19,21 @@ const drawForm = (json) => {
     const label = createLabel(property.label);
     profileForm.append(label, element);
   });
-  const form = document.createElement("form");
-  data.properties.forEach((property) => {
-    const element = createElement(property);
-    const label = createLabel(property.label);
-    form.appendChild(label);
-    form.appendChild(element);
-  });
-  profileForm.appendChild(form);
 };
-document.getElementById("generateFormButton").addEventListener("click", () => {
-  const jsonInput = document.getElementById("jsonInput").value;
-  drawForm(JSON.parse(jsonInput));
+
+/**
+ * Fetches data and draws the form based on JSON schema after page load.
+ */
+const fetchData = () => {
+  drawForm(jsonSchema);
+};
+
+// Call the function to display JSON schema when the page is loaded
+window.addEventListener("load", () => {
+  displayJsonSchema();
+  fetchData();
 });
+
 const jsonSchema = {
   type: "object",
   name: "profile",
@@ -179,13 +189,6 @@ const jsonSchema = {
     },
   ],
 };
-// Function to display JSON schema in textarea
-const displayJsonSchema = () => {
-  document.getElementById("jsonInput").value = JSON.stringify(jsonSchema, null, 2);
-};
-
-// Call the function to display JSON schema when the page is loaded
-window.addEventListener("load", displayJsonSchema);
 
 /**
  * Creates an HTML element based on the provided property.
