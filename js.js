@@ -25,13 +25,28 @@ const drawForm = (json) => {
  * Fetches data and draws the form based on JSON schema after page load.
  */
 const fetchData = () => {
-  drawForm(jsonSchema);
+  try {
+    const textarea = document.getElementById("jsonInput");
+    const parsedJson = JSON.parse(textarea.value);
+    drawForm(parsedJson);
+  } catch (error) {
+    console.error("Invalid JSON format:", error.message);
+    const profileForm = document.getElementById("profileForm");
+    const errorMessage = document.createElement("p");
+    errorMessage.textContent = `Error: ${error.message}`;
+    errorMessage.style.color = "red";
+    profileForm.innerHTML = ""; // Clear previous form
+    profileForm.appendChild(errorMessage);
+  }
 };
 
 // Call the function to display JSON schema when the page is loaded
 window.addEventListener("load", () => {
   displayJsonSchema();
   fetchData();
+
+  const textarea = document.getElementById("jsonInput");
+  textarea.addEventListener("input", fetchData);
 });
 
 const jsonSchema = {
